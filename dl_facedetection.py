@@ -35,7 +35,6 @@ try:
 	def secondMaxEmotion(predictions, max_index):
 		emotions_index = 0
 		secondary_emotion_index = 0
-		third_emotion_index = 0
 		max_emotion_num = -1
 		for x in predictions:
 			if (max_emotion_num < x) and (emotions_index != max_index):
@@ -68,7 +67,7 @@ try:
 
 			# initialize the video stream and allow the cammera sensor to warmup
 			print("[INFO] starting video stream...")
-			vs = cv2.VideoCapture('resources/pellek.mp4')
+			vs = cv2.VideoCapture('resources/test.mp4')
 
 			fps = vs.get(cv2.CAP_PROP_FPS)
 
@@ -154,18 +153,18 @@ try:
 					elif(emotion == 'angry' and secondary_emotion == 'sad') or (emotion == 'sad' and secondary_emotion == 'angry'):
 						emotion = 'serious'
 
-
+					start = -1
+					curr_emotion = emotion
 					# if face detection confidence is above 50% and the face detected index is 0 then set new face detected index
-					if start == 0:
+					if curr_emotion == 'tense':
 						start = float(frame_count)/fps
-						curr_emotion = emotion
 					# if emotion change then add timestamp
-					if curr_emotion != emotion:
+					elif curr_emotion != 'tense' and start != -1:
 						end = float(frame_count)/fps
 						timestamp.append( ({'start_time': start } , {'end_time': end } , {'emotion': emotion}) )
 						start = 0
 					# if video end then add timestamp
-					if frame_count == fps:
+					if frame_count == fps and start != -1:
 						end = float(frame_count)/fps
 						timestamp.append( ({'start_time': start } , {'end_time': end } , {'emotion': emotion}) )
 						break
@@ -173,14 +172,15 @@ try:
 					# write emotion text on image
 					cv2.putText(frame, emotion, (int(startX), int(startY)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
 
-				# show the output frame
-				cv2.imshow("Frame", frame)
-				key = cv2.waitKey(1) & 0xFF
 				flag_for_testing = 1
 
+				# show the output frame
+				# cv2.imshow("Frame", frame)
+				# key = cv2.waitKey(1) & 0xFF
+
 				# if the `q` key was pressed, break from the loop
-				if key == ord("q"):
-					break
+				# if key == ord("q"):
+				# 	break
 
 		if flag_for_testing == 1:
 			break
