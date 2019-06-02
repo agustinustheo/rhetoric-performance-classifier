@@ -44,7 +44,6 @@ try:
 			
 		for x in predictions:
 			if (max_emotion_num < x) and (emotions_index != max_index):
-				third_emotion_index = emotions_index
 				max_emotion_num = x
 			emotions_index += 1
 
@@ -67,13 +66,14 @@ try:
 
 			# initialize the video stream and allow the cammera sensor to warmup
 			print("[INFO] starting video stream...")
-			vs = cv2.VideoCapture('resources/test.mp4')
+			vs = cv2.VideoCapture('resources/pellek.mp4')
 
 			fps = vs.get(cv2.CAP_PROP_FPS)
 
 			frame_count = 0
-			timestamp = []
-			start = 0
+			emotion_timestamp = []
+			emotion_start = -1
+			curr_emotion = ""
 			# loop over the frames from the video stream
 			while True:
 				frame_count = frame_count + 1
@@ -124,11 +124,12 @@ try:
 					# cv2.putText(frame, text, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
 				if sum_confidence < 0.6:
-					end = float(frame_count)/fps
-					# if face detection confidence is below 50% and the face detected index is not 0 then append face detected duration to timestamp
-					if start != 0:
-						timestamp.append( ({'start_time': start } , {'end_time': end } , {'emotion': emotion}) )
-						start = 0
+					emotion_end = float(frame_count)/fps
+					# if face detection confidence is below 50% and the face detected index is not 0 then append face detected duration to tense_timestamp
+					if emotion_start != -1:
+						emotion_timestamp.append( {'start_time': emotion_start , 'end_time': emotion_end  , 'emotion': curr_emotion} )
+						emotion_start = -1
+
 				else:
 					detected_face = frame[int(startY):int(startY+endY), int(startX):int(startX+endX)] #crop detected face
 					detected_face = cv2.cvtColor(detected_face, cv2.COLOR_BGR2GRAY) #transform to gray scale
@@ -153,20 +154,20 @@ try:
 					elif(emotion == 'angry' and secondary_emotion == 'sad') or (emotion == 'sad' and secondary_emotion == 'angry'):
 						emotion = 'serious'
 
-					start = -1
-					curr_emotion = emotion
 					# if face detection confidence is above 50% and the face detected index is 0 then set new face detected index
-					if curr_emotion == 'tense':
-						start = float(frame_count)/fps
-					# if emotion change then add timestamp
-					elif curr_emotion != 'tense' and start != -1:
-						end = float(frame_count)/fps
-						timestamp.append( ({'start_time': start } , {'end_time': end } , {'emotion': emotion}) )
-						start = 0
-					# if video end then add timestamp
-					if frame_count == fps and start != -1:
-						end = float(frame_count)/fps
-						timestamp.append( ({'start_time': start } , {'end_time': end } , {'emotion': emotion}) )
+					if emotion_start == -1:
+						emotion_start = float(frame_count)/fps
+						curr_emotion = emotion
+					# if emotion change then add anger_timestamp
+					elif curr_emotion != emotion and emotion_start != -1:
+						emotion_end = float(frame_count)/fps
+						emotion_timestamp.append( {'start_time': emotion_start ,'end_time': emotion_end ,'emotion': emotion} )
+						emotion_start = -1
+						curr_emotion = emotion
+					# if video end then add anger_timestamp
+					if frame_count == fps and emotion_start != -1:
+						emotion_end = float(frame_count)/fps
+						emotion_timestamp.append( {'start_time': emotion_start ,'end_time': emotion_end ,'emotion': curr_emotion} )
 						break
 					
 					# write emotion text on image
@@ -175,12 +176,12 @@ try:
 				flag_for_testing = 1
 
 				# show the output frame
-				# cv2.imshow("Frame", frame)
-				# key = cv2.waitKey(1) & 0xFF
+				cv2.imshow("Frame", frame)
+				key = cv2.waitKey(1) & 0xFF
 
 				# if the `q` key was pressed, break from the loop
-				# if key == ord("q"):
-				# 	break
+				if key == ord("q"):
+					break
 
 		if flag_for_testing == 1:
 			break
@@ -189,16 +190,45 @@ try:
 	# do a bit of cleanup
 	cv2.destroyAllWindows()
 
-	return_timestamp = json.dumps(
-		{"result": timestamp}
+	tense_count = 0
+	micro_tense_count = 0
+	anger_count = 0
+	micro_anger_count = 0
+	for x in emotion_timestamp:
+		if x["end_time"] - x["start_time"] >= 0.5 and x["emotion"] == 'tense':
+			tense_count += 1
+
+		if x["end_time"] - x["start_time"] >= 0.1 and x["end_time"] - x["start_time"] < 0.5 and x["emotion"] == 'tense':
+			micro_tense_count += 1
+		
+		if x["end_time"] - x["start_time"] >= 0.5 and x["emotion"] == 'angry':
+			anger_count += 1
+		
+		if x["end_time"] - x["start_time"] >= 0.1 and x["end_time"] - x["start_time"] < 0.5 and x["emotion"] == 'angry':
+			micro_anger_count += 1
+
+	
+	return_json = json.dumps(
+		{
+			"result": 
+			{
+				"tense_count": tense_count,
+				"anger_count": anger_count,
+				"micro_tense_count": micro_tense_count,
+				"micro_anger_count": micro_anger_count
+			}
+		}
 	)
 
-	count = 0
-	for x in timestamp:
-		if x["start_time"] - x["end_time"] == 0.5 and x["emotion"] == 'tense':
-			count += 1
-
+	print(return_json)
 
 except Exception as e:
 	err_msg = "Error: " + str(e)
-	print(err_msg)
+
+	return_json = json.dumps(
+		{
+			"error": err_msg
+		}
+	)
+
+	print(return_json)
