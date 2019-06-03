@@ -16,7 +16,7 @@ try:
 	caffemodel_path = os.path.join(base_dir + 'model/weights.caffemodel')
 	model = tf.keras.models.load_model('model/cnn_face_expression.model')
 	emotions = ('angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral')
-	video_url = 'https://www.youtube.com/watch?v=oTz93Y-qeq0'
+	video_url = 'https://www.youtube.com/watch?v=dGuheGml_wQ'
 
 	ydl_opts = {}
 
@@ -50,7 +50,6 @@ try:
 		return secondary_emotion_index
 
 	for f in formats:
-		url = f.get('url',None)
 		if flag_for_testing == 1:
 			break
 
@@ -66,7 +65,7 @@ try:
 
 			# initialize the video stream and allow the cammera sensor to warmup
 			print("[INFO] starting video stream...")
-			vs = cv2.VideoCapture('resources/pellek.mp4')
+			vs = cv2.VideoCapture(url)
 
 			fps = vs.get(cv2.CAP_PROP_FPS)
 
