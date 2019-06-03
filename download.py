@@ -18,10 +18,15 @@ try:
 	emotions = ('angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral')
 	video_url = 'https://www.youtube.com/watch?v=dGuheGml_wQ'
 
-	ydl_opts = {}
+	ydl_opts = {
+		'format' : '133',
+		'outtmpl': '%(id)s.mp4'
+	}
 
 	# create youtube-dl object
 	ydl = youtube_dl.YoutubeDL(ydl_opts)
+	with youtube_dl.YoutubeDL(ydl_opts) as asd:
+		asd.download([video_url])
 
 	# set video url, extract video information
 	info_dict = ydl.extract_info(video_url, download=False)
@@ -58,6 +63,7 @@ try:
 			
 			#get the video url
 			url = f.get('url',None)
+			ext = f.get('ext',None)
 
 			# load our serialized model from disk
 			print("[INFO] loading model...")
@@ -65,7 +71,7 @@ try:
 
 			# initialize the video stream and allow the cammera sensor to warmup
 			print("[INFO] starting video stream...")
-			vs = cv2.VideoCapture(url)
+			vs = cv2.VideoCapture(str(info_dict["id"]) + "." + str(ext))
 
 			fps = vs.get(cv2.CAP_PROP_FPS)
 
@@ -220,6 +226,7 @@ try:
 	)
 
 	print(return_json)
+	os.remove(str(info_dict["id"]) + "."  + str(ext))
 
 except Exception as e:
 	err_msg = "Error: " + str(e)
