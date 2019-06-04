@@ -13,3 +13,8 @@ Sentdex, on how to do deep learning with python, tensorflow, and keras: https://
 Dr. Adrian Rosebrock, tutoring on how to face detect using the deep learning model from opencv: https://www.pyimagesearch.com/2018/02/26/face-detection-with-opencv-and-deep-learning/  
 Sefiks, for the guidance on how to create a facial expression model: http://sefiks.com/2018/01/01/facial-expression-recognition-with-keras  
 Sefiks, for the live facial expression detection: https://sefiks.com/2018/01/10/real-time-facial-expression-recognition-on-streaming-data/  
+
+---
+## Installation on linux
+Build Opencv from source  
+<b>Ubuntu</b> - Use this guide: https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/
